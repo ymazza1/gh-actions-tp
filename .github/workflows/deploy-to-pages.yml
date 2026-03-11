@@ -1,0 +1,47 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write          # requis par l'action de déploiement GitHub Pages
+
+concurrency:
+  group: pages
+  cancel-in-progress: true  # annule un déploiement en cours si un nouveau push arrive
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml   # la CI doit passer avant tout déploiement
+
+  deploy:
+    needs: ci
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}  # URL affichée dans le résumé du job
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Inject API URL
+        env:
+          API_URL: ${{ secrets.API_URL }}
+        run: |
+          sed -i "s|API_URL_PLACEHOLDER|$API_URL|g" public/index.html
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload static files
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public/
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
