@@ -16,6 +16,8 @@ concurrency:
 jobs:
   ci:
     uses: ./.github/workflows/ci.yml   # la CI doit passer avant tout déploiement
+    secrets: inherit
+
 
   deploy:
     needs: ci
