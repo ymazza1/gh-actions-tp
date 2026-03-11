@@ -30,22 +30,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Check API_URL secret
-        env:
-          API_URL: ${{ secrets.API_URL }}
-        run: |
-          if [ -z "$API_URL" ]; then
-            echo "❌ Le secret API_URL est vide ou absent"
-            exit 1
-          fi
-          echo "✅ API_URL est défini"
-
-      - name: Inject API URL
-        env:
-          API_URL: ${{ secrets.API_URL }}
-        run: |
-          sed -i "s|API_URL_PLACEHOLDER|$API_URL|g" public/index.html
-
       - name: Setup Pages
         uses: actions/configure-pages@v4
 

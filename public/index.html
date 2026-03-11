@@ -13,38 +13,6 @@
 </head>
 <body>
   <h1>👋 Greeter App</h1>
-  <p>API : <code id="api-url"></code></p>
 
-  <input id="name" type="text" placeholder="Ton prénom" />
-  <button onclick="greet()">Saluer</button>
-
-  <div id="result"></div>
-  <div id="error"></div>
-
-  <script>
-    // Injecté par le workflow via sed (voir ci-dessous)
-    const API_URL = 'API_URL_PLACEHOLDER';
-    document.getElementById('api-url').textContent = API_URL;
-
-    async function greet() {
-      document.getElementById('result').textContent = '';
-      document.getElementById('error').textContent = '';
-
-      const name = document.getElementById('name').value.trim();
-      if (!name) {
-        document.getElementById('error').textContent = 'Saisis un prénom.';
-        return;
-      }
-
-      try {
-        const res = await fetch(`${API_URL}/api/greet/${encodeURIComponent(name)}`);
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
-        document.getElementById('result').textContent = `✅ ${data.message}`;
-      } catch (err) {
-        document.getElementById('error').textContent = `❌ ${err.message}`;
-      }
-    }
-  </script>
 </body>
 </html>
