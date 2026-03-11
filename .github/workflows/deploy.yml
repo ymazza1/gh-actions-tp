@@ -7,6 +7,7 @@ on:
 jobs:
   ci:
     uses: ./.github/workflows/ci.yml    # réutilise le workflow CI existant
+    secrets: inherit
 
   deploy-staging:
     needs: ci                           # bloqué tant que CI ne passe pas
