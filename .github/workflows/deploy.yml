@@ -1,0 +1,38 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml    # réutilise le workflow CI existant
+
+  deploy-staging:
+    needs: ci                           # bloqué tant que CI ne passe pas
+    runs-on: ubuntu-latest
+    environment: staging                # environnement GitHub (protection rules possibles)
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to staging
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
+        run: |
+          echo "🚀 Deploying commit ${{ github.sha }} to staging..."
+          echo "Triggered by: ${{ github.actor }}"
+          echo "Deploy complete ✅"
+
+  deploy-production:
+    needs: deploy-staging               # production après staging
+    runs-on: ubuntu-latest
+    environment: production             # peut nécessiter une approbation manuelle
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to production
+        run: |
+          echo "🚀 Deploying to production..."
+          echo "Deploy complete ✅"

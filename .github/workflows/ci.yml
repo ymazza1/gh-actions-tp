@@ -35,3 +35,12 @@ jobs:
           name: coverage-report
           path: coverage/
           retention-days: 7
+      - name: Verify secret is available
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
+        run: |
+          if [ -z "$API_KEY" ]; then
+            echo "❌ Secret manquant"
+            exit 1
+          fi
+          echo "✅ Secret disponible (valeur masquée par GitHub)"
