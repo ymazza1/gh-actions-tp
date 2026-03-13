@@ -1,0 +1,62 @@
+services:
+
+  # Le fournisseur d'ingrédients : livre la farine, les œufs, le lait au camion
+  # Le camion ne peut pas ouvrir sans ses ingrédients
+  fournisseur:
+    image: mysql:8.0
+    container_name: fournisseur-ingredients
+    environment:
+      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_DATABASE=recettes
+    volumes:
+      # Les ingrédients sont stockés dans un entrepôt persistant :
+      # même si le fournisseur ferme et rouvre, le stock est intact
+      - stock_ingredients:/var/lib/mysql
+    networks:
+      - cuisine
+    restart: unless-stopped
+
+  # Le camion de crêpes : reçoit les ingrédients du fournisseur,
+  # prépare les crêpes, et les passe au livreur
+  camion:
+    build: ./app
+    container_name: food-truck
+    environment:
+      - DB_HOST=fournisseur      # le camion connaît le fournisseur par son nom
+      - DB_PASSWORD=secret
+    depends_on:
+      - fournisseur              # le camion n'ouvre pas avant que le fournisseur soit prêt
+    networks:
+      - cuisine                  # parle avec le fournisseur en cuisine (réseau interne)
+      - rue                      # visible depuis la rue pour le livreur
+    restart: unless-stopped
+
+  # Le livreur : reçoit les commandes des clients et apporte les crêpes
+  # Les clients ne parlent jamais directement au camion
+  livreur:
+    image: nginx:alpine
+    container_name: livreur-crepes
+    ports:
+      - "80:80"                  # la seule porte ouverte vers l'extérieur
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - camion                   # le livreur attend que le camion ait des crêpes à livrer
+    networks:
+      - rue                      # parle avec le camion depuis la rue
+    restart: unless-stopped
+
+networks:
+  # Le réseau interne entre le fournisseur et le camion :
+  # personne dehors ne voit les livraisons d'ingrédients
+  cuisine:
+    driver: bridge
+
+  # Le réseau entre le camion et le livreur :
+  # semi-public, le livreur fait la navette
+  rue:
+    driver: bridge
+
+volumes:
+  # L'entrepôt du fournisseur : persiste même si le conteneur est supprimé
+  stock_ingredients:
